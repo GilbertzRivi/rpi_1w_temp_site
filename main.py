@@ -56,6 +56,7 @@ def generate_image(start, finish, path, sensor):
         return output[::-1 ]
     db = Database('database.db')
     result = db.fetch(f'{sensor}, timestamp', 'sensors', f'timestamp>{start} and timestamp<{finish}').fetchall()
+    print(start, finish, len(result))
     result.sort(key=lambda x: x[1])
     no_data = False
     try:
@@ -89,27 +90,28 @@ def sensors_db():
     readings = read_sensors()
     db = Database('database.db')
     db.insert('sensors', None, *readings, datetime.now().timestamp())
-    db.delete('sensors', f'timestamp < {datetime.now().timestamp() - 60*60*24}')
+    db.delete('sensors', f'timestamp < {datetime.now().timestamp() - 60*60*24*10}')
 
 @app.route('/', methods=["POST"])
 def main_request():
-    start = datetime.strptime(request.form['start'], '%Y-%m-%dT%H:%M').timestamp()
-    finish = datetime.strptime(request.form['finish'], '%Y-%m-%dT%H:%M').timestamp()
+    start = int(request.form['start'])/1000
+    finish = int(request.form['finish'])/1000
     for i in range(sensor_amount):
         generate_image(start, finish, f"static/img{i}.jpg", f"t{i}")
     
-    return render_template('template.html', image=[f"static/img{i}.jpg" for i in range(sensor_amount)])
+    return [f"static/img{i}.jpg" for i in range(sensor_amount)]
 
 @app.route('/')
 def main_site():
     for i in range(sensor_amount):
         generate_image(datetime.now().timestamp()-60*60*2, datetime.now().timestamp(), f"static/img{i}.jpg", f"t{i}")
-
     return render_template('template.html', image=[f"static/img{i}.jpg" for i in range(sensor_amount)])
 
 if __name__ == '__main__':
-    if not os.path.isfile("database.py"):
+    if not os.path.isfile("database.db"):
         create_database()
+    if not os.path.isdir('static'):
+        os.mkdir('static')
     scheduler = BackgroundScheduler()
     scheduler.add_job(func=sensors_db, trigger="interval", seconds=30)
     scheduler.start()

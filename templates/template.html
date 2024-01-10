@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <title>Document</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap');
-
+        @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=Lato:wght@400;700;900&display=swap');
         html{
             background-color: #1d1d1d;
             color: white;
-            font-family: 'Roboto', sans-serif;
+            font-family: 'Dancing Script', cursive;
         }
         .img_div{
             text-align: center;
@@ -21,14 +21,19 @@
             flex-wrap: wrap;
             justify-content: space-evenly;
         }
-        form{
-            width: 100%;
-            text-align: center;
-            padding-top: 20px;
-        }
         img{
             width: 35vw;
             height: auto;
+        }
+        #buttons{
+            width: 100%;
+            text-align: center;
+            margin: 21.37px;
+        }
+        #buttons button{
+            padding: 21.37px;
+            font-size: 213.7px;
+            font-family: 'Dancing Script', cursive;
         }
         @media screen and (max-width: 600px) {
             img{
@@ -41,17 +46,72 @@
 <body>
     {% for img in image %}
     <div class="img_div">
-        <h2> sensor {{ loop.index }} </h2>
-        <img src="{{ img }}">
+        <h2> Sensor {{ loop.index }} </h2>
+        <img src="{{ img }}" id="{{ loop.index }}">
     </div>
     {% endfor %}
-    <form action='/', method='POST'>
-        <label for='start'>start</label>
-        <input type="datetime-local" id='start' name='start'></br>
-        <label for='finish'>finish</label>
-        <input type="datetime-local" id='finish' name='finish'></br>
-        <input type="submit">
-    </form>
+    <div id="buttons">
+    <button onclick="a24h()">24h</button>
+    <button onclick="a48h()">48h</button>
+    <button onclick="a7d()">7d</button>
+    </div>
+
+    <script>
+        function a24h(){
+            let s = Date.now() - 24*60*60*100;
+            let f = Date.now();
+            $.ajax({ 
+                url: '/', 
+                type: 'POST', 
+                data: {
+                    start: s,
+                    finish: f,
+                },
+                success: function(response){ 
+                    {% for img in image %}
+                        $("#{{ loop.index }}").attr("src",response[{{loop.index-1}}]+"?random="+new Date().getTime());
+                    {% endfor %}
+                    }
+                });
+            }
+            
+        function a48h(){
+            let s = Date.now() - 24*60*60*100*2;
+            let f = Date.now();
+            $.ajax({ 
+                url: '/', 
+                type: 'POST', 
+                data: {
+                    start: s,
+                    finish: f,
+                },
+                success: function(response){ 
+                    {% for img in image %}
+                        $("#{{ loop.index }}").attr("src",response[{{loop.index-1}}]+"?random="+new Date().getTime());
+                    {% endfor %}
+                    }
+                });
+            }
+
+        function a7d(){
+            let s = Date.now() - 24*60*60*100*7;
+            let f = Date.now();
+            $.ajax({ 
+                url: '/', 
+                type: 'POST', 
+                data: {
+                    start: s,
+                    finish: f,
+                },
+                success: function(response){ 
+                    {% for img in image %}
+                        $("#{{ loop.index }}").attr("src",response[{{loop.index-1}}]+"?random="+new Date().getTime());
+                    {% endfor %}
+                    }
+                });
+            }
+        </script>
+    </script>
 
 </body>
 </html>
